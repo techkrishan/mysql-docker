@@ -1,0 +1,55 @@
+version: '3.8'
+
+#Docker Networks
+networks:
+  mysql5-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.23.1.0/24
+
+
+services:
+
+  #MySQL Service
+  mysql5:
+    image: mysql:5.7
+    container_name: mysql5
+    cap_add:
+      - SYS_NICE  # CAP_SYS_NICE
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "3319:3306"
+    environment:
+      MYSQL_USER: mysql5
+      MYSQL_PASSWORD: Mysql5@123
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - ./mysql5data:/var/lib/mysql/
+      - ./mysql/my.cnf:/etc/mysql/my.cnf
+    networks:
+      mysql5-network:
+        ipv4_address: 172.23.1.4
+
+  #PHPMyAdmin Service
+  mysql5-admin:
+    depends_on:
+      - mysql5
+    image: phpmyadmin
+    container_name: mysql5-admin
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "9019:80"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      PMA_HOST: mysql5
+    networks:
+      mysql5-network:
+        ipv4_address: 172.23.1.5
+
+#Volumes
+volumes:
+  mysqldata:
+    driver: local
